@@ -1,0 +1,113 @@
+# Maintainer: Alexey Pavlov <Alexpux@gmail.com>
+
+_realname=ffmpeg
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=2.5.3
+pkgrel=1
+pkgdesc="Complete and free Internet live audio and video broadcasting solution (mingw-w64)"
+arch=('any')
+url="http://ffmpeg.org/"
+groups=("${MINGW_PACKAGE_PREFIX}")
+license=('GPL')
+options=('staticlibs' 'strip')
+depends=(
+        "${MINGW_PACKAGE_PREFIX}-bzip2"
+        "${MINGW_PACKAGE_PREFIX}-celt"
+        "${MINGW_PACKAGE_PREFIX}-fontconfig"
+        "${MINGW_PACKAGE_PREFIX}-gnutls"
+        "${MINGW_PACKAGE_PREFIX}-gsm"
+        "${MINGW_PACKAGE_PREFIX}-lame"
+        "${MINGW_PACKAGE_PREFIX}-libass"
+        "${MINGW_PACKAGE_PREFIX}-libbluray"
+        "${MINGW_PACKAGE_PREFIX}-libcaca"
+        "${MINGW_PACKAGE_PREFIX}-libmodplug"
+        "${MINGW_PACKAGE_PREFIX}-libtheora"
+        "${MINGW_PACKAGE_PREFIX}-libvorbis"
+        "${MINGW_PACKAGE_PREFIX}-libvpx"
+        "${MINGW_PACKAGE_PREFIX}-libwebp"
+        "${MINGW_PACKAGE_PREFIX}-openal"
+        "${MINGW_PACKAGE_PREFIX}-opencore-amr"
+        "${MINGW_PACKAGE_PREFIX}-openjpeg"
+        "${MINGW_PACKAGE_PREFIX}-opus"
+        "${MINGW_PACKAGE_PREFIX}-rtmpdump"
+        "${MINGW_PACKAGE_PREFIX}-schroedinger"
+        "${MINGW_PACKAGE_PREFIX}-SDL"
+        "${MINGW_PACKAGE_PREFIX}-speex"
+        "${MINGW_PACKAGE_PREFIX}-x264"
+        "${MINGW_PACKAGE_PREFIX}-x265"
+        "${MINGW_PACKAGE_PREFIX}-xvidcore"
+        "${MINGW_PACKAGE_PREFIX}-wavpack"
+        "${MINGW_PACKAGE_PREFIX}-zlib"
+        )
+makedepends=("yasm" "${MINGW_PACKAGE_PREFIX}-gcc" "${MINGW_PACKAGE_PREFIX}-pkg-config")
+source=(http://ffmpeg.org/releases/$_realname-$pkgver.tar.bz2)
+md5sums=('efba7c5cfbea9ce58ff693cd08f90ffa')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+}
+
+build() {
+  mkdir -p "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MINGW_CHOST}"
+  #CPPFLAGS+=" --save-temps"
+  #CFLAGS+=" --save-temps"
+
+  ../${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --target-os=mingw32 \
+    --arch=${CARCH%%-*} \
+    --disable-debug \
+    --disable-shared \
+    --enable-avresample \
+    --enable-dxva2 \
+    --enable-fontconfig \
+    --enable-gnutls \
+    --enable-gpl \
+    --enable-libass \
+    --enable-libbluray \
+    --enable-libcaca \
+    --enable-libcelt \
+    --enable-libfreetype \
+    --enable-libgsm \
+    --enable-libmodplug \
+    --enable-libmp3lame \
+    --enable-libopencore_amrnb \
+    --enable-libopencore_amrwb \
+    --enable-libopenjpeg \
+    --enable-libopus \
+    --enable-librtmp \
+    --enable-libschroedinger \
+    --enable-libspeex \
+    --enable-libtheora \
+    --enable-libvorbis \
+    --enable-libx264 \
+    --enable-libx265 \
+    --enable-libxvid \
+    --enable-libvpx \
+    --enable-openal \
+    --enable-libwavpack \
+    --enable-pic \
+    --enable-postproc \
+    --enable-runtime-cpudetect \
+    --enable-static \
+    --enable-swresample \
+    --enable-version3 \
+    --enable-zlib \
+    --disable-doc
+    #--enable-pthreads
+  make
+}
+
+check() {
+  cd "${srcdir}/build-${MINGW_CHOST}"
+  make check
+}
+
+package() {
+  cd "${srcdir}/build-${MINGW_CHOST}"
+  make DESTDIR="${pkgdir}" install
+  mv "${pkgdir}${MINGW_PREFIX}"/bin/*.lib "${pkgdir}${MINGW_PREFIX}"/lib/
+
+  #find ${pkgdir}${MINGW_PREFIX}/bin -type f -name "*.exe" -exec objcopy --subsystem console {} \;
+}
